@@ -287,7 +287,6 @@ public class PatientDAO {
             while (rs.next()) {
                 Object[] appointment = new Object[]{
                         rs.getInt("id"),
-                        rs.getString("appointment_type"),
                         rs.getString("appointment_date")
                         // Add other fields as needed
                 };

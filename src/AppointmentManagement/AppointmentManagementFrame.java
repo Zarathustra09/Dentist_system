@@ -535,7 +535,9 @@ public class AppointmentManagementFrame extends JFrame {
         appointmentTable.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
         // Set column widths
-        appointmentTable.getColumnModel().getColumn(0).setPreferredWidth(40);  // ID
+       appointmentTable.getColumnModel().getColumn(0).setMinWidth(0);
+        appointmentTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        appointmentTable.getColumnModel().getColumn(0).setPreferredWidth(0); // ID
         appointmentTable.getColumnModel().getColumn(1).setPreferredWidth(150); // Patient
         appointmentTable.getColumnModel().getColumn(2).setPreferredWidth(120); // Procedure
         appointmentTable.getColumnModel().getColumn(3).setPreferredWidth(150); // Date & Time
@@ -591,13 +593,19 @@ public class AppointmentManagementFrame extends JFrame {
         return panel;
     }
     private void openScheduleAppointmentFrame() {
-        // Remove any existing action listeners to prevent duplicates
-        for (ActionListener al : addButton.getActionListeners()) {
-            addButton.removeActionListener(al);
+        // Check if the "SCHEDULE_NEW" panel already exists
+        if (detailPanel.getComponentCount() > 0) {
+            for (Component component : detailPanel.getComponents()) {
+                if ("SCHEDULE_NEW".equals(component.getName())) {
+                    cardLayout.show(detailPanel, "SCHEDULE_NEW");
+                    return;
+                }
+            }
         }
 
-        // Add the correct action listener
+        // Create and add the "SCHEDULE_NEW" panel if it doesn't exist
         JPanel schedulePanel = createScheduleAppointmentPanel();
+        schedulePanel.setName("SCHEDULE_NEW");
         detailPanel.add(schedulePanel, "SCHEDULE_NEW");
         cardLayout.show(detailPanel, "SCHEDULE_NEW");
     }

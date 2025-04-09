@@ -529,6 +529,9 @@ public class PatientManagementFrame extends JFrame {
         patientTable.getTableHeader().setForeground(Color.BLACK); // Changed from WHITE to BLACK
         patientTable.getColumnModel().getColumn(8).setPreferredWidth(160);
         patientTable.getColumnModel().getColumn(8).setMinWidth(160);
+
+
+
         // Set column header for the Actions column
         patientTable.getColumnModel().getColumn(8).setHeaderValue("Actions (Edit/Delete)");
 
@@ -670,7 +673,11 @@ public class PatientManagementFrame extends JFrame {
 
             // Set reasonable column widths to prevent dimension issues
             if (patientTable.getColumnModel().getColumnCount() > 0) {
-                patientTable.getColumnModel().getColumn(0).setMaxWidth(50);  // ID
+                // Hide the first column (ID column)
+                patientTable.getColumnModel().getColumn(0).setMinWidth(0);
+                patientTable.getColumnModel().getColumn(0).setMaxWidth(0);
+                patientTable.getColumnModel().getColumn(0).setPreferredWidth(0);
+                // ID
                 patientTable.getColumnModel().getColumn(1).setMaxWidth(150); // First Name
                 patientTable.getColumnModel().getColumn(2).setMaxWidth(150); // Middle Name
                 patientTable.getColumnModel().getColumn(3).setMaxWidth(150); // Last Name
@@ -1041,63 +1048,57 @@ public class PatientManagementFrame extends JFrame {
     }
 
     private void confirmDeletePatient(int patientId) {
-        try {
-            // Check if patient has appointments
-            List<Object[]> appointments = PatientDAO.getPatientAppointments(patientId);
+    try {
+        // Check if patient has appointments
+        List<Object[]> appointments = PatientDAO.getPatientAppointments(patientId);
 
-            if (!appointments.isEmpty()) {
-                // Show appointments in a dialog
-                StringBuilder sb = new StringBuilder();
-                sb.append("This patient has the following appointments:\n\n");
+        if (!appointments.isEmpty()) {
+            // Show a generic message about existing appointments
+            String message = "This patient has existing appointments.\n\n" +
+                             "Do you want to delete these appointments and the patient?";
 
-                for (Object[] appointment : appointments) {
-                    sb.append("- ").append(appointment[1]).append(" on ").append(appointment[2]).append("\n");
-                }
+            int choice = JOptionPane.showConfirmDialog(
+                    this,
+                    message,
+                    "Appointments Found",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
 
-                sb.append("\nDo you want to delete these appointments and the patient?");
-
-                int choice = JOptionPane.showConfirmDialog(
-                        this,
-                        sb.toString(),
-                        "Appointments Found",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.WARNING_MESSAGE
-                );
-
-                if (choice == JOptionPane.YES_OPTION) {
-                    boolean success = PatientDAO.deletePatientWithAppointments(patientId);
-                    if (success) {
-                        showToast("Patient and appointments deleted successfully!", new Color(46, 204, 113));
-                        loadPatients();
-                        cardLayout.show(detailPanel, "EMPTY");
-                    }
-                }
-            } else {
-                // No appointments, confirm normal deletion
-                int choice = JOptionPane.showConfirmDialog(
-                        this,
-                        "Are you sure you want to delete patient #" + patientId + "?",
-                        "Confirm Deletion",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.WARNING_MESSAGE
-                );
-
-                if (choice == JOptionPane.YES_OPTION) {
-                    boolean success = PatientDAO.deletePatient(patientId);
-                    if (success) {
-                        showToast("Patient deleted successfully!", new Color(46, 204, 113));
-                        loadPatients();
-                        cardLayout.show(detailPanel, "EMPTY");
-                    }
+            if (choice == JOptionPane.YES_OPTION) {
+                boolean success = PatientDAO.deletePatientWithAppointments(patientId);
+                if (success) {
+                    showToast("Patient and appointments deleted successfully!", new Color(46, 204, 113));
+                    loadPatients();
+                    cardLayout.show(detailPanel, "EMPTY");
                 }
             }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Database error: " + e.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+        } else {
+            // No appointments, confirm normal deletion
+            int choice = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to delete patient #" + patientId + "?",
+                    "Confirm Deletion",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if (choice == JOptionPane.YES_OPTION) {
+                boolean success = PatientDAO.deletePatient(patientId);
+                if (success) {
+                    showToast("Patient deleted successfully!", new Color(46, 204, 113));
+                    loadPatients();
+                    cardLayout.show(detailPanel, "EMPTY");
+                }
+            }
         }
+    } catch (SQLException e) {
+        JOptionPane.showMessageDialog(this,
+                "Database error: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
     }
+}
     private void updatePatient(int patientId) {
         // Validate input fields
         if (!validateInputFields(firstNameField, lastNameField, birthdayChooser, emailField, phoneField, addressArea)) {
