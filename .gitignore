@@ -27,3 +27,9 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+/src/PatientFiles/
+
+
+
+### Project Specific ###
+src/PatientFiles/

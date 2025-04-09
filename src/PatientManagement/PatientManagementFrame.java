@@ -502,105 +502,91 @@ public class PatientManagementFrame extends JFrame {
     }
 
     private JPanel createTablePanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
-        panel.setBackground(new Color(240, 240, 245));
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
+    panel.setBackground(new Color(240, 240, 245));
 
-        // Create column names
-        String[] columnNames = {"ID", "First Name", "Middle Name", "Last Name", "Birthday",
-                "Email", "Phone", "Address", "Actions"};
+    // Create column names
+    String[] columnNames = {"ID", "First Name", "Middle Name", "Last Name", "Birthday",
+            "Email", "Phone", "Address", "Actions"};
 
-        // Create table model
-        tableModel = new DefaultTableModel() {
-            public boolean isCellEditable(int row, int column) {
-                return column == 8; // Only actions column is editable
-            }
-        };
-        tableModel.setColumnIdentifiers(columnNames);
+    // Create table model
+    tableModel = new DefaultTableModel() {
+        public boolean isCellEditable(int row, int column) {
+            return column == 8; // Only actions column is editable
+        }
+    };
+    tableModel.setColumnIdentifiers(columnNames);
 
-        // Create table
-        patientTable = new JTable(tableModel);
-        patientTable.setRowHeight(35);
-        patientTable.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        patientTable.setSelectionBackground(new Color(224, 242, 254));
-        patientTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
-        patientTable.getTableHeader().setOpaque(false);
-        patientTable.getTableHeader().setBackground(new Color(52, 73, 94));
-        patientTable.getTableHeader().setForeground(Color.BLACK); // Changed from WHITE to BLACK
-        patientTable.getColumnModel().getColumn(8).setPreferredWidth(160);
-        patientTable.getColumnModel().getColumn(8).setMinWidth(160);
+    // Create table
+    patientTable = new JTable(tableModel);
+    patientTable.setRowHeight(35);
+    patientTable.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+    patientTable.setSelectionBackground(new Color(224, 242, 254));
+    patientTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+    patientTable.getTableHeader().setOpaque(false);
+    patientTable.getTableHeader().setBackground(new Color(52, 73, 94));
+    patientTable.getTableHeader().setForeground(Color.BLACK);
+    patientTable.getColumnModel().getColumn(8).setPreferredWidth(160);
+    patientTable.getColumnModel().getColumn(8).setMinWidth(160);
 
+    // Set column header for the Actions column
+    patientTable.getColumnModel().getColumn(8).setHeaderValue("Actions (View/Edit/Delete)");
 
+    // Set action column renderer
+    patientTable.getColumnModel().getColumn(8).setCellRenderer(new ActionButtonRenderer());
 
-        // Set column header for the Actions column
-        patientTable.getColumnModel().getColumn(8).setHeaderValue("Actions (Edit/Delete)");
+    // Add mouse listener for action buttons
+    patientTable.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            int column = patientTable.getColumnModel().getColumnIndexAtX(e.getX());
+            int row = e.getY() / patientTable.getRowHeight();
 
-        // Set action column renderer
-        patientTable.getColumnModel().getColumn(8).setCellRenderer(new ActionButtonRenderer());
+            // Check if click was on a valid row in the Actions column
+            if (row >= 0 && row < patientTable.getRowCount() && column == 8) {
+                int patientId = Integer.parseInt(patientTable.getValueAt(row, 0).toString());
+                Rectangle cellRect = patientTable.getCellRect(row, column, false);
+                int buttonWidth = cellRect.width / 3;
 
-        // Make sure the Actions column is wide enough
-        patientTable.getColumnModel().getColumn(8).setPreferredWidth(150);
-        patientTable.getColumnModel().getColumn(8).setMinWidth(150);
+                int relativeX = e.getX() - cellRect.x;
 
-        // Add mouse listener for action buttons
-        patientTable.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                int column = patientTable.getColumnModel().getColumnIndexAtX(e.getX());
-                int row = e.getY() / patientTable.getRowHeight();
-
-                // Check if click was on a valid row in the Actions column
-                if (row >= 0 && row < patientTable.getRowCount() && column == 8) {
-                    // Get patient ID from first column
-                    int patientId = Integer.parseInt(patientTable.getValueAt(row, 0).toString());
-
-                    // Calculate the width of the cell
-                    Rectangle cellRect = patientTable.getCellRect(row, column, false);
-                    int buttonWidth = cellRect.width / 2; // Assuming equal width for both buttons
-
-                    // Determine which half of the cell was clicked
-                    int relativeX = e.getX() - cellRect.x;
-
-                    if (relativeX < buttonWidth) {
-                        // Left button (Edit)
-                        showEditPatient(patientId);
-                    } else {
-                        // Right button (Delete)
-                        confirmDeletePatient(patientId);
-                    }
-                }
-            }
-        });
-
-        // Add tooltips to the table
-        patientTable.addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                Point p = e.getPoint();
-                int row = patientTable.rowAtPoint(p);
-                int col = patientTable.columnAtPoint(p);
-
-                // Set tooltip for the Actions column
-                if (col == 8 && row >= 0 && row < patientTable.getRowCount()) {
-                    Rectangle cellRect = patientTable.getCellRect(row, col, true);
-                    int xInCell = p.x - cellRect.x;
-
-                    if (xInCell < cellRect.width / 2) {
-                        patientTable.setToolTipText("Edit this patient");
-                    } else {
-                        patientTable.setToolTipText("Delete this patient");
-                    }
+                if (relativeX < buttonWidth) {
+                    // View button
+                    showViewPatient(patientId);
+                } else if (relativeX < buttonWidth * 2) {
+                    // Edit button
+                    showEditPatient(patientId);
                 } else {
-                    patientTable.setToolTipText(null);
+                    // Delete button
+                    confirmDeletePatient(patientId);
                 }
             }
-        });
+        }
+    });
 
-        JScrollPane scrollPane = new JScrollPane(patientTable);
-        panel.add(scrollPane, BorderLayout.CENTER);
+    // Add tooltips to the table
+    patientTable.addMouseMotionListener(new MouseMotionAdapter() {
+        @Override
+        public void mouseMoved(MouseEvent e) {
+            Point p = e.getPoint();
+            int row = patientTable.rowAtPoint(p);
+            int col = patientTable.columnAtPoint(p);
 
-        return panel;
-    }
+            // Set tooltip for the Actions column
+            if (col == 8 && row >= 0 && row < patientTable.getRowCount()) {
+                patientTable.setToolTipText("Click to View, Edit, or Delete");
+            } else {
+                patientTable.setToolTipText(null);
+            }
+        }
+    });
+
+    JScrollPane scrollPane = new JScrollPane(patientTable);
+    panel.add(scrollPane, BorderLayout.CENTER);
+
+    return panel;
+}
 
     private JPanel createDetailPanel() {
         JPanel panel = new JPanel();
@@ -946,6 +932,102 @@ public class PatientManagementFrame extends JFrame {
                     "Form Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+
+    private void showViewPatient(int patientId) {
+        try {
+            // Reset uploaded files
+            uploadedFilePaths = new ArrayList<>();
+
+            // Remove existing VIEW panel if it exists
+            Component[] components = detailPanel.getComponents();
+            for (Component component : components) {
+                if ("VIEW".equals(component.getName())) {
+                    detailPanel.remove(component);
+                    break;
+                }
+            }
+
+            // Get patient data
+            Object[] patientData = PatientDAO.getPatientById(patientId);
+            if (patientData == null) {
+                JOptionPane.showMessageDialog(this, "Error loading patient data.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Get patient files
+            uploadedFilePaths = PatientDAO.getPatientFiles(patientId);
+
+            // Create new form fields to avoid reference issues
+            firstNameField = new JTextField();
+            middleNameField = new JTextField();
+            lastNameField = new JTextField();
+            emailField = new JTextField();
+            phoneField = new JTextField();
+            addressArea = new JTextArea();
+            birthdayChooser = new JDateChooser();
+            birthdayChooser.setDateFormatString("yyyy-MM-dd");
+
+            // Create a new view patient panel
+            JPanel viewPanel = createAddPatientPanel();
+            viewPanel.setName("VIEW");
+
+            // Change the title
+            Component topComponent = viewPanel.getComponent(0);
+            if (topComponent instanceof JLabel) {
+                ((JLabel) topComponent).setText("View Patient #" + patientId);
+            }
+
+            // Remove action buttons
+            Component bottomComponent = viewPanel.getComponent(2);
+            if (bottomComponent instanceof JPanel) {
+                viewPanel.remove(bottomComponent);
+            }
+
+            // Fill in patient data
+            firstNameField.setText((String) patientData[1]);
+            middleNameField.setText((String) patientData[2]);
+            lastNameField.setText((String) patientData[3]);
+
+            try {
+                birthdayChooser.setDate(java.sql.Date.valueOf((String) patientData[4]));
+            } catch (Exception e) {
+                System.err.println("Error setting date: " + e.getMessage());
+            }
+
+            emailField.setText((String) patientData[5]);
+            phoneField.setText((String) patientData[6]);
+            addressArea.setText((String) patientData[7]);
+
+            // Set all fields to read-only
+            firstNameField.setEditable(false);
+            middleNameField.setEditable(false);
+            lastNameField.setEditable(false);
+            emailField.setEditable(false);
+            phoneField.setEditable(false);
+            addressArea.setEditable(false);
+            birthdayChooser.setEnabled(false);
+
+            // Add to card layout and show
+            detailPanel.add(viewPanel, "VIEW");
+            cardLayout.show(detailPanel, "VIEW");
+
+            // Update file displays
+            updateFilesTable();
+            updateUploadedFilesList();
+
+            detailPanel.revalidate();
+            detailPanel.repaint();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Error loading patient information: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
     private void showEditPatient(int patientId) {
         try {
             // Reset uploaded files
@@ -1390,14 +1472,25 @@ public class PatientManagementFrame extends JFrame {
 
     // Add the ActionButtonRenderer class here, as a separate class
     class ActionButtonRenderer extends JPanel implements TableCellRenderer {
+        private JButton viewButton;
         private JButton editButton;
         private JButton deleteButton;
 
         public ActionButtonRenderer() {
-            // Use GridLayout with 1 row, 2 columns to force horizontal arrangement
-            setLayout(new GridLayout(1, 2, 5, 0));
+            // Use GridLayout with 1 row, 3 columns to arrange buttons horizontally
+            setLayout(new GridLayout(1, 3, 5, 0));
             setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
             setOpaque(true);
+
+            // Create view button
+            viewButton = new JButton("View");
+            viewButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            viewButton.setForeground(Color.BLACK);
+            viewButton.setBackground(new Color(135, 206, 250)); // Light blue
+            viewButton.setFocusPainted(false);
+            viewButton.setBorderPainted(true);
+            viewButton.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));
+            viewButton.setUI(new BasicButtonUI());
 
             // Create edit button
             editButton = new JButton("Edit");
@@ -1420,6 +1513,7 @@ public class PatientManagementFrame extends JFrame {
             deleteButton.setUI(new BasicButtonUI());
 
             // Add buttons to panel
+            add(viewButton);
             add(editButton);
             add(deleteButton);
         }
@@ -1435,6 +1529,8 @@ public class PatientManagementFrame extends JFrame {
             }
 
             // Ensure button colors are consistent
+            viewButton.setForeground(Color.BLACK);
+            viewButton.setBackground(new Color(135, 206, 250));
             editButton.setForeground(Color.BLACK);
             editButton.setBackground(new Color(255, 215, 0));
             deleteButton.setForeground(Color.BLACK);
