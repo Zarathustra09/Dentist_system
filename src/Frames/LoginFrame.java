@@ -34,6 +34,11 @@ public class LoginFrame extends JFrame {
         // Button panel
         JPanel buttonPanel = createButtonPanel();
 
+        // Check if any account exists and hide the register button if true
+        if (UserDAO.hasAnyAccount()) {
+            registerButton.setVisible(false);
+        }
+
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(formPanel, BorderLayout.CENTER);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);

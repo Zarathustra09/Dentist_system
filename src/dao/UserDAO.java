@@ -10,6 +10,19 @@ import java.util.ArrayList;
 
 public class UserDAO {
 
+    public static boolean hasAnyAccount() {
+        String sql = "SELECT 1 FROM users LIMIT 1";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            return rs.next(); // Returns true if at least one record exists
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public static boolean register(String username, String password, String email) throws SQLException {
         String sql = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
