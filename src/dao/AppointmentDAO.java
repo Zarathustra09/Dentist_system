@@ -6,6 +6,20 @@ import java.util.List;
 
 public class AppointmentDAO {
 
+    private static final List<Runnable> changeListeners = new ArrayList<>();
+
+    // Method to add change listeners
+    public static void addChangeListener(Runnable listener) {
+        changeListeners.add(listener);
+    }
+
+    // Method to notify all registered listeners
+    private static void notifyChangeListeners() {
+        for (Runnable listener : changeListeners) {
+            listener.run();
+        }
+    }
+
     public static List<Object[]> getAllAppointments() throws SQLException {
         List<Object[]> appointments = new ArrayList<>();
         String sql = "SELECT a.id, CONCAT(p.first_name, ' ', p.last_name) AS patient_name, " +
@@ -112,6 +126,9 @@ public class AppointmentDAO {
             stmt.setInt(7, id);
 
             int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                notifyChangeListeners(); // Notify listeners
+            }
             return rowsAffected > 0;
         }
     }
@@ -124,6 +141,9 @@ public class AppointmentDAO {
 
             stmt.setInt(1, id);
             int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                notifyChangeListeners(); // Notify listeners
+            }
             return rowsAffected > 0;
         }
     }
@@ -145,9 +165,13 @@ public class AppointmentDAO {
             stmt.setString(6, description);
 
             int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                notifyChangeListeners(); // Notify listeners
+            }
             return rowsAffected > 0;
         }
     }
+
     public static boolean scheduleAppointment(int patientId, String procedure, String dateTime, String cost, String charge, String description) throws SQLException {
         String query = "INSERT INTO appointments (patient_id, `procedure_name`, appointment_date, cost, charge, description) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -158,8 +182,12 @@ public class AppointmentDAO {
             stmt.setString(4, cost);
             stmt.setString(5, charge);
             stmt.setString(6, description);
-            return stmt.executeUpdate() > 0;
+
+            boolean success = stmt.executeUpdate() > 0;
+            if (success) {
+                notifyChangeListeners(); // Notify listeners
+            }
+            return success;
         }
     }
-
 }

@@ -485,7 +485,7 @@ public class PatientManagementFrame extends JFrame {
         styleButton(addButton, new Color(46, 204, 113));
         addButton.addActionListener(e -> showAddPatient());
 
-        refreshButton = new JButton("↻");
+        refreshButton = new JButton("Refresh");
         refreshButton.setToolTipText("Refresh patient list");
         styleButton(refreshButton, new Color(52, 152, 219));
         refreshButton.addActionListener(e -> loadPatients());

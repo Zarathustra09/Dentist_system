@@ -36,6 +36,9 @@ public class CalendarPanel extends JPanel {
 
         // Populate the calendar with the current month's data
         populateCalendar();
+
+        // Register as a listener to update the calendar when appointments change
+        AppointmentDAO.addChangeListener(this::populateCalendar);
     }
 
     private void createNavigationPanel() {
